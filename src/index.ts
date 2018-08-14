@@ -152,11 +152,8 @@ function addCommands(app: JupyterLab, manager: TensorboardManager, tracker: Inst
   });
 
   commands.addCommand(CommandIDs.createNew, {
-    label: args => (args['isPalette'] ? 'New Tensorbaord' : 'Tensorboard'),
-    caption: 'Start a new tensorboard',
-    iconClass: args => (args['isPalette'] ? '' : TENSORBOARD_ICON_CLASS),
     execute: args => {
-      const logdir = typeof args['logdir'] === 'undefined' ? args['cwd'] as string : args['logdir'] as string;
+      const logdir =  args['logdir'] as string
       return serviceManager.contents.get(logdir, { type: 'directory'}).then(dir => {
           return manager.startNew(dir.path).then(tb => {
             return app.commands.execute(CommandIDs.open, { tb: tb.model});
@@ -172,11 +169,19 @@ function addCommands(app: JupyterLab, manager: TensorboardManager, tracker: Inst
     },
   });
 
+  const createNew = (cwd: string) => {
+      return commands.execute(CommandIDs.createNew, { logdir: cwd }).then(widget => {
+          return widget;
+      });
+  };
+
   if (launcher) {
       launcher.add({
-          command: CommandIDs.createNew,
+          displayName: 'Tensorboard',
           category: 'Other',
-          rank: 2,
+          rank: 0,
+          iconClass: TENSORBOARD_ICON_CLASS,
+          callback: createNew
       });
   }
 }
