@@ -12,7 +12,7 @@ Thanks [lspvic](https://github.com/lspvic) and his excellent work creating [tens
 
 ## Prerequisites
 
-* JupyterLab
+* JupyterLab (version 0.32.1)
 * [Jupyter_tensorboard](https://github.com/lspvic/jupyter_tensorboard)
 
 ## Installation
@@ -20,7 +20,7 @@ Thanks [lspvic](https://github.com/lspvic) and his excellent work creating [tens
 > Note: please install jupyter_tensorboard first.
 
 ```bash
-jupyter labextension install jupyterlab_tensorboard
+jupyter labextension install jupyterlab_tensorboard@0.1.2
 ```
 ## Usage
 
