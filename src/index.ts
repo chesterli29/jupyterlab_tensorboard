@@ -45,6 +45,7 @@ namespace CommandIDs {
 
   export
   const close = 'tensorboard:close';
+
 }
 
 /**
@@ -95,7 +96,7 @@ function activate(app: JupyterLab, restorer: ILayoutRestorer, palette: ICommandP
  */
 export
 function addCommands(app: JupyterLab, manager: TensorboardManager, tracker: InstanceTracker<TensorboardTab>, launcher: ILauncher | null) {
-  let { commands, serviceManager } = app;
+  let commands = app.commands;
 
   commands.addCommand(CommandIDs.open, {
     execute: args => {
@@ -132,6 +133,12 @@ function addCommands(app: JupyterLab, manager: TensorboardManager, tracker: Inst
     }
   });
 
+  const doCreate = (logdir: string) => {
+    return manager.startNew(logdir).then(tb => {
+      return app.commands.execute(CommandIDs.open, { tb: tb.model});
+    });
+  };
+
   commands.addCommand(CommandIDs.inputDirect, {
     label: () => 'Create a new tensorboard',
     execute: args => {
@@ -143,7 +150,7 @@ function addCommands(app: JupyterLab, manager: TensorboardManager, tracker: Inst
       }).then(result => {
         if (result.button.label === 'CREATE') {
           const logdir = <string>result.value;
-          return app.commands.execute(CommandIDs.createNew, {logdir: logdir});
+          return doCreate(logdir);
         } else {
           return;
         }
@@ -156,21 +163,22 @@ function addCommands(app: JupyterLab, manager: TensorboardManager, tracker: Inst
     caption: 'Start a new tensorboard',
     iconClass: args => (args['isPalette'] ? '' : TENSORBOARD_ICON_CLASS),
     execute: args => {
-      const logdir = typeof args['logdir'] === 'undefined' ? args['cwd'] as string : args['logdir'] as string;
-      return serviceManager.contents.get(logdir, { type: 'directory'}).then(dir => {
-          return manager.startNew(dir.path).then(tb => {
-            return app.commands.execute(CommandIDs.open, { tb: tb.model});
-          });
-        }, () => {
-          // no such directory.
-          return showDialog({
-            title: 'Cannot create tensorboard.',
-            body: 'Directory not found',
-            buttons: [Dialog.okButton()]
-          });
-        });
-    },
+      showDialog({
+        title: 'Using current dir as logdir or Input a dir path',
+        buttons: [Dialog.cancelButton(), Dialog.createButton({ label: 'Current'}), Dialog.createButton({ label: 'Input'})],
+      }).then(result => {
+        if (result.button.label === 'Current') {
+          let logdir = args['cwd'];
+          return doCreate(logdir as string);
+        } else if (result.button.label === 'Input') {
+          return app.commands.execute(CommandIDs.inputDirect);
+        } else {
+          return
+        }
+      });
+    }
   });
+
 
   if (launcher) {
       launcher.add({
