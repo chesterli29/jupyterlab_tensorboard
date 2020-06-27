@@ -1,5 +1,5 @@
 import {
-  ILayoutRestorer, JupyterFrontEnd, JupyterFrontEndPlugin
+  JupyterFrontEnd, JupyterFrontEndPlugin
 } from '@jupyterlab/application';
 
 import {
@@ -18,10 +18,6 @@ import {
   IFileBrowserFactory
 } from '@jupyterlab/filebrowser';
 
-import { 
-  RunningTensorboards
-} from './panel';
-
 import {
   TensorboardManager
 } from './manager';
@@ -34,9 +30,18 @@ import {
   TensorboardTab, OpenLogdirWidget
 } from './tab';
 
-import '../style/index.css';
+import { IRunningSessionManagers, IRunningSessions } from '@jupyterlab/running';
 
-const TENSORBOARD_ICON_CLASS = 'jp-Tensorboard-icon';
+import { toArray } from '@lumino/algorithm';
+
+import { LabIcon } from '@jupyterlab/ui-components';
+
+import tensorboardSvgstr from '../style/tensorboard.svg';
+
+export const tensorboardIcon = new LabIcon({
+  name: 'jupyterlab-tensorboard:tensorboard',
+  svgstr: tensorboardSvgstr
+});
 
 /**
  * The command IDs used by the tensorboard plugin.
@@ -60,42 +65,66 @@ namespace CommandIDs {
  */
 const extension: JupyterFrontEndPlugin<IWidgetTracker<MainAreaWidget<TensorboardTab>>> = {
   id: 'tensorboard',
-  requires: [ILayoutRestorer, ICommandPalette, IFileBrowserFactory],
-  optional: [ILauncher, IMainMenu],
+  requires: [ICommandPalette, IFileBrowserFactory],
+  optional: [ILauncher, IMainMenu, IRunningSessionManagers],
   autoStart: true,
   activate,
 };
 
 export default extension;
 
-function activate(app: JupyterFrontEnd, restorer: ILayoutRestorer, palette: ICommandPalette, browserFactory: IFileBrowserFactory, launcher: ILauncher | null, menu: IMainMenu | null): WidgetTracker<MainAreaWidget<TensorboardTab>> {
+function activate(app: JupyterFrontEnd, palette: ICommandPalette, browserFactory: IFileBrowserFactory, launcher: ILauncher | null, menu: IMainMenu | null, runningSessionManagers: IRunningSessionManagers | null): WidgetTracker<MainAreaWidget<TensorboardTab>> {
   let manager = new TensorboardManager();
-  let running = new RunningTensorboards({manager: manager});
-  running.id = 'jp-Tensorboards';
-  running.title.label = 'Tensorboards';
   
   const namespace = 'tensorboard';
   const tracker = new WidgetTracker<MainAreaWidget<TensorboardTab>>({ namespace })
 
-  // Let the application restorer track the running panel for restoration of
-  // application state (e.g. setting the running panel as the current side bar
-  // widget).
-  restorer.add(running, 'Tensorboards');
-
   addCommands(app, manager, tracker, browserFactory, launcher, menu);
 
-  running.tensorboardOpenRequested.connect((sender, model) => {
-    app.commands.execute('tensorboard:open', { tb: model });
-  });
-
-  running.tensorboardShutdownRequested.connect((sender, model) => {
-    app.commands.execute('tensorboard:close', { tb: model });
-  })
+  if (runningSessionManagers) {
+    addRunningSessionManager(runningSessionManagers, app, manager);
+  }
 
   palette.addItem({ command: CommandIDs.inputDirect , category: 'Tensorboard' });
 
-  app.shell.add(running, "left",{rank: 300});
   return tracker
+}
+
+function addRunningSessionManager(
+  managers: IRunningSessionManagers,
+  app: JupyterFrontEnd,
+  manager: TensorboardManager
+) {
+  managers.add({
+    name: 'Tensorboard',
+    running: () =>
+      toArray(manager.running()).map(model => new RunningTensorboard(model)),
+    shutdownAll: () => manager.shutdownAll(),
+    refreshRunning: () => manager.refreshRunning(),
+    runningChanged: manager.runningChanged
+  });
+
+  class RunningTensorboard implements IRunningSessions.IRunningItem {
+    constructor(model: Tensorboard.IModel) {
+      this._model = model;
+    }
+    open() {
+      app.commands.execute(CommandIDs.open, { tb: this._model });
+    }
+    icon() {
+      return tensorboardIcon;
+    }
+    label() {
+      return `tensorboards/${this._model.name}`;
+    }
+    shutdown() {
+      app.commands.execute(CommandIDs.close, { tb: this._model });
+      return manager.shutdown(this._model.name);
+
+    }
+
+    private _model: Tensorboard.IModel;
+  }
 }
 
 /**
@@ -163,7 +192,7 @@ function addCommands(app: JupyterFrontEnd, manager: TensorboardManager, tracker:
   commands.addCommand(CommandIDs.createNew, {
     label: args => (args['isPalette'] ? 'New Tensorbaord' : 'Tensorboard'),
     caption: 'Start a new tensorboard',
-    iconClass: args => (args['isPalette'] ? '' : TENSORBOARD_ICON_CLASS),
+    icon: args => (args['isPalette'] ? undefined : tensorboardIcon),
     execute: args => {
       let cwd = args['cwd'] as string || browserFactory.defaultBrowser.model.path;
       const logdir = typeof args['logdir'] === 'undefined' ? cwd : args['logdir'] as string;
