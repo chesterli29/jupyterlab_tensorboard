@@ -71,6 +71,7 @@ setup_args = dict(
     packages=setuptools.find_packages(),
     install_requires=[
         "jupyterlab~=3.0",
+        "jupyter-tensorboard~=0.2.0"
     ],
     zip_safe=False,
     include_package_data=True,
