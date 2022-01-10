@@ -1,30 +1,14 @@
-# Jupyterlab-Tensorboard
+# JupyterLab Tensorboard
 
-![Github Actions Status](https://github.com/chaoleili/jupyterlab_tensorboard/workflows/Build/badge.svg)
+[![Github Actions Status](https://github.com/twalcari/jupyterlab-tensorboard/workflows/Build/badge.svg)](https://github.com/twalcari/jupyterlab-tensorboard/actions/workflows/build.yml)
 
-A JupyterLab extension for tensorboard.
+A JupyterLab extension for TensorBoard.
 
-> Note: This project is just a frontend extension for tensorboard on jupyterlab. It uses the [jupyter_tensorboard](https://github.com/lspvic/jupyter_tensorboard) project as tensorboard backend.
+*Acknowledgement*: the tensorboard backend from [jupyter_tensorboard](https://github.com/lspvic/jupyter_tensorboard) was integrated into this extension.
 
-<img src="image/tensorboard-overview.png" />
 
-## Special Thanks
-
-Thanks [lspvic](https://github.com/lspvic) and his excellent work for creating [tensorboard](https://github.com/lspvic/jupyter_tensorboard) for jupyter notebooks.
-
-## Prerequisites
-
-* JupyterLab
-* [Jupyter_tensorboard](https://github.com/lspvic/jupyter_tensorboard)
-
-## Installation
-
-> Note: please install jupyter_tensorboard first.
-
-```bash
-jupyter labextension install jupyterlab_tensorboard
-```
 ## Usage
+
 
 New card in Launcher to create a tensorboard with current working directory as the logdir for tensorboard.
 
@@ -38,23 +22,78 @@ User can also use Commands to create a tensorboard with inputting the logdir pat
 
 `NOTE: The logdir path should be relative to the jupyterlab's root directory. If not, jupyterlab will return 404 not found error.`
 
-<img src="image/commands.png" />
 
-<img src="image/commands-input.png">
+## Requirements
 
-## Development
+* JupyterLab >= 3.0
 
-For a development install (requires npm version 4 or later), do the following in the repository directory:
+## Install
 
-```bash
-npm install
-npm run build
-jupyter labextension link .
-```
-
-To rebuild the package and the JupyterLab app:
+To install the extension, execute:
 
 ```bash
-npm run build
-jupyter lab build
+pip install jupyterlab_tensorboard
 ```
+
+## Uninstall
+
+To remove the extension, execute:
+
+```bash
+pip uninstall jupyterlab_tensorboard
+```
+
+
+## Contributing
+
+### Development install
+
+Note: You will need NodeJS to build the extension package.
+
+The `jlpm` command is JupyterLab's pinned version of
+[yarn](https://yarnpkg.com/) that is installed with JupyterLab. You may use
+`yarn` or `npm` in lieu of `jlpm` below.
+
+```bash
+# Clone the repo to your local environment
+# Change directory to the jupyterlab_tensorboard directory
+# Install package in development mode
+pip install -e .
+# Link your development version of the extension with JupyterLab
+jupyter labextension develop . --overwrite
+# Enable the server extension
+jupyter server extension enable jupyterlab_tensorboard
+# Rebuild extension Typescript source after making changes
+jlpm run build
+```
+
+You can watch the source directory and run JupyterLab at the same time in different terminals to watch for changes in the extension's source and automatically rebuild the extension.
+
+```bash
+# Watch the source directory in one terminal, automatically rebuilding when needed
+jlpm run watch
+# Run JupyterLab in another terminal
+jupyter lab
+```
+
+With the watch command running, every saved change will immediately be built locally and available in your running JupyterLab. Refresh JupyterLab to load the change in your browser (you may need to wait several seconds for the extension to be rebuilt).
+
+By default, the `jlpm run build` command generates the source maps for this extension to make it easier to debug using the browser dev tools. To also generate source maps for the JupyterLab core extensions, you can run the following command:
+
+```bash
+jupyter lab build --minimize=False
+```
+
+### Development uninstall
+
+```bash
+pip uninstall jupyterlab_tensorboard
+```
+
+In development mode, you will also need to remove the symlink created by `jupyter labextension develop`
+command. To find its location, you can run `jupyter labextension list` to figure out where the `labextensions`
+folder is located. Then you can remove the symlink named `jupyterlab-tensorboard` within that folder.
+
+### Packaging the extension
+
+See [RELEASE](RELEASE.md)
