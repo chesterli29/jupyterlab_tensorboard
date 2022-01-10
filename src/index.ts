@@ -33,7 +33,7 @@ import { LabIcon } from '@jupyterlab/ui-components';
 import tensorboardSvgstr from '../style/tensorboard.svg';
 
 export const tensorboardIcon = new LabIcon({
-  name: 'jupyterlab-tensorboard:tensorboard',
+  name: 'jupyterlab_tensorboard:tensorboard',
   svgstr: tensorboardSvgstr
 });
 

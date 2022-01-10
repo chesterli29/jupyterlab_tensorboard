@@ -1,6 +1,6 @@
 # JupyterLab Tensorboard
 
-[![Github Actions Status](https://github.com/twalcari/jupyterlab-tensorboard/workflows/Build/badge.svg)](https://github.com/twalcari/jupyterlab-tensorboard/actions/workflows/build.yml)
+[![Github Actions Status](https://github.com/chaoleili/jupyterlab_tensorboard/workflows/Build/badge.svg)](https://github.com/chaoleili/jupyterlab_tensorboard/actions/workflows/build.yml)
 
 A JupyterLab extension for TensorBoard.
 
@@ -92,7 +92,7 @@ pip uninstall jupyterlab_tensorboard
 
 In development mode, you will also need to remove the symlink created by `jupyter labextension develop`
 command. To find its location, you can run `jupyter labextension list` to figure out where the `labextensions`
-folder is located. Then you can remove the symlink named `jupyterlab-tensorboard` within that folder.
+folder is located. Then you can remove the symlink named `jupyterlab_tensorboard` within that folder.
 
 ### Packaging the extension
 
