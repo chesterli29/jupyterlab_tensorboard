@@ -1,7 +1,7 @@
 include LICENSE
-include README.md
+include *.md
 include pyproject.toml
-include jupyter-config/jupyterlab_tensorboard.json
+recursive-include jupyter-config *.json
 
 include package.json
 include install.json
@@ -15,6 +15,7 @@ graft src
 graft style
 prune **/node_modules
 prune lib
+prune binder
 
 # Patterns to exclude from any directory
 global-exclude *~
